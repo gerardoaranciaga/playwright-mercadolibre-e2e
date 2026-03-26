@@ -15,6 +15,11 @@ jobs:
       fail-fast: false
       matrix:
         browser: [chromium, firefox, webkit]
+    
+    env:
+      ML_USER: ${{ secrets.ML_USER }}
+      ML_PASS: ${{ secrets.ML_PASS }}
+      ML_API_TOKEN: ${{ secrets.ML_API_TOKEN }}
 
     steps:
       # 1️⃣ Clonar repo
