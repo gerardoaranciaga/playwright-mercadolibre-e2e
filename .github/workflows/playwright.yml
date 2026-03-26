@@ -1,27 +1,57 @@
 name: Playwright Tests
+
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
+
 jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: lts/*
-    - name: Install dependencies
-      run: npm ci
-    - name: Install Playwright Browsers
-      run: npx playwright install --with-deps
-    - name: Run Playwright tests
-      run: npx playwright test
-    - uses: actions/upload-artifact@v4
-      if: ${{ !cancelled() }}
-      with:
-        name: playwright-report
-        path: playwright-report/
-        retention-days: 30
+      # 1️⃣ Clonar repo
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2️⃣ Instalar Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      # 3️⃣ Instalar dependencias
+      - name: Install dependencies
+        run: npm ci
+
+      # 4️⃣ Instalar navegadores de Playwright
+      
+      # Para WebKit (con dependencias del sistema)
+      - name: Install Playwright (WebKit)
+        if: matrix.browser == 'webkit'
+        run: npx playwright install --with-deps webkit
+
+      # Para Chromium y Firefox (rápido)
+      - name: Install Playwright (Chromium/Firefox)
+        if: matrix.browser != 'webkit'
+        run: npx playwright install ${{ matrix.browser }}
+
+      # 5️⃣ Ejecutar tests
+      - name: Run Playwright tests
+        run: npx playwright test --project=${{ matrix.browser }}
+
+      # 6️⃣ Subir reporte (FIX aplicado)
+      - name: Upload Playwright Report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.browser }}
+          path: playwright-report/
+          retention-days: 30
