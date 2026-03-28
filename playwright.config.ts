@@ -1,29 +1,58 @@
-
 import { defineConfig, devices } from '@playwright/test';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// Para reemplazar __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Cargar variables de entorno
 dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 export default defineConfig({
+  // ─── Test Discovery ──────────────────────────────────────────────
   testDir: './tests',
+  testMatch: '**/*.spec.ts',
+
+  // ─── Ejecución ───────────────────────────────────────────────────
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
-  use: {
-    trace: 'on-first-retry',
+
+  // ─── Timeouts globales ───────────────────────────────────────────
+  timeout: 60_000,
+  expect: {
+    timeout: 10_000,
   },
+
+  // ─── Reporters ───────────────────────────────────────────────────
+  reporter: [
+    ['list'],
+    ['html', { outputFolder: 'playwright-report', open: 'never' }],
+  ],
+
+  // ─── Configuración global de todos los proyectos ─────────────────
+  use: {
+    baseURL: process.env.BASE_URL ?? 'https://www.mercadolibre.com.ar',
+
+    // Evidencia en fallos
+    trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
+
+    // Timeouts de acciones
+    actionTimeout: 15_000,
+    navigationTimeout: 30_000,
+
+    // Localización
+    locale: 'es-AR',
+    timezoneId: 'America/Argentina/Buenos_Aires',
+  },
+
+  // ─── Proyectos / Browsers ────────────────────────────────────────
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-    { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
-    { name: 'webkit', use: { ...devices['Desktop Safari'] } },
+    { name: 'firefox',  use: { ...devices['Desktop Firefox'] } },
+    { name: 'webkit',   use: { ...devices['Desktop Safari'] } },
   ],
 });
