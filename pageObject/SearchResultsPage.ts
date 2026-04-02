@@ -37,12 +37,13 @@ export class SearchResultsPage extends BasePage {
         this.filterFreeShipping = page.locator('.ui-search-filter-dl').filter({ hasText: 'Costo de envío' }).getByRole('link', { name: 'Gratis', exact: true });
         
         // Filtro por precio — tienen data-testid!
+        // Reemplazá estos tres locators
         this.priceMinInput = page.getByTestId('Minimum-price');
         this.priceMaxInput = page.getByTestId('Maximum-price');
         this.priceSubmitButton = page.getByTestId('ui-search-range-filter__text-submit-test');
 
         // Ordenar
-        this.sortDropdown = page.locator('.andes-dropdown__display-values');
+        this.sortDropdown = page.locator('.andes-dropdown__trigger');
 
         // Paginación
         this.nextPageButton = page.locator('[data-andes-pagination-control="next"]');
@@ -84,16 +85,31 @@ export class SearchResultsPage extends BasePage {
     }
 
     async filterByPriceRange(min: string, max: string): Promise<void> {
-        await this.priceMinInput.fill(min);
-        await this.priceMaxInput.fill(max);
-        await this.priceSubmitButton.click();
+        await this.priceMinInput.click();
+        await this.priceMinInput.clear();
+        await this.priceMinInput.pressSequentially(min, { delay: 100 });
+        await this.priceMaxInput.click();
+        await this.priceMaxInput.clear();
+        await this.priceMaxInput.pressSequentially(max, { delay: 100 });
+        await this.priceMaxInput.press('Tab');
+        await this.priceMinInput.locator('xpath=ancestor::form').getByRole('button', { name: 'Aplicar' }).click();
         await this.waitForPageLoad();
     }
 
     // ─── Acciones — Ordenar ──────────────────────────────────────────
-    async sortBy(option: string): Promise<void> {
-        await this.sortDropdown.click();
-        await this.page.getByRole('option', { name: option }).click();
+    async sortBy(option: 'relevance' | 'price_asc' | 'price_desc'): Promise<void> {
+        if (option === 'relevance') return;
+        const currentUrl = this.page.url();
+        const cleanUrl = currentUrl.split('#')[0];
+        const sortSegment = option === 'price_asc' 
+            ? '_OrderId_PRICE_NoIndex_True'
+            : '_OrderId_PRICE_DESC_NoIndex_True';
+
+        const finalUrl = cleanUrl.replace(
+            /\/notebook$/,
+            `/notebook${sortSegment}`
+        );
+        await this.page.goto(finalUrl);
         await this.waitForPageLoad();
     }
 

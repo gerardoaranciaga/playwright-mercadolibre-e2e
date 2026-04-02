@@ -29,7 +29,8 @@ export default defineConfig({
   // ─── Configuración global de todos los proyectos ─────────────────
   use: {
     baseURL: process.env.BASE_URL ?? 'https://www.mercadolibre.com.ar',
-
+    storageState: 'auth.json',
+    
     // Evidencia en fallos
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
@@ -47,7 +48,7 @@ export default defineConfig({
   // ─── Proyectos / Browsers ────────────────────────────────────────
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-    { name: 'firefox',  use: { ...devices['Desktop Firefox'] } },
-    { name: 'webkit',   use: { ...devices['Desktop Safari'] } },
+    //{ name: 'firefox',  use: { ...devices['Desktop Firefox'] } },
+    //{ name: 'webkit',   use: { ...devices['Desktop Safari'] } },
   ],
 });
